@@ -44,6 +44,8 @@ public class Main extends Application {
 
 	@Override
 	public void start(Stage primaryStage) {
+		
+		System.out.println("hello");
 
 		// Create the root AnchorPane
 		AnchorPane root = new AnchorPane();

@@ -7,6 +7,7 @@ public class Branch {
 	private String openinghours;
 	private int menu_id;
 	private int resturant_id;
+	
 
 	public Branch(int branch_id, String phoneNumber, String location, String openinghours, int menu_id,
 			int resturant_id) {
@@ -66,5 +67,6 @@ public class Branch {
 	public void setResturant_id(int resturant_id) {
 		this.resturant_id = resturant_id;
 	}
+
 
 }

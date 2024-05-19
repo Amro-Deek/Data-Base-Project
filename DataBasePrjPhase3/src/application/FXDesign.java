@@ -4,6 +4,7 @@ import javafx.application.Application;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.effect.Blend;
 import javafx.scene.effect.SepiaTone;
 import javafx.scene.image.Image;
@@ -18,7 +19,7 @@ import javafx.stage.Stage;
 public class FXDesign extends Application {
 
 	private Pane innerPane;
-	private Pane branchPane = new BranchPane();;
+	private Pane branchPane = new BranchPane();
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
@@ -47,6 +48,7 @@ public class FXDesign extends Application {
 		label.setUnderline(true);
 		SepiaTone sepiaTone = new SepiaTone();
 		label.setEffect(sepiaTone);
+		
 
 		innerPane = new Pane();
 		innerPane.setLayoutX(158);
@@ -117,6 +119,7 @@ public class FXDesign extends Application {
 			vBox.getChildren().add(innerLabel);
 		}
 
+		
 		pane.getChildren().addAll(rectangle, label, innerPane, vBox);
 		root.getChildren().add(pane);
 
