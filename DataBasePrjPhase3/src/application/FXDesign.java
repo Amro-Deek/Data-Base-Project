@@ -20,15 +20,15 @@ public class FXDesign extends Application {
 
 	private Pane innerPane;
 	private Pane branchPane = new BranchPane();
+	private Pane menuPane = new MenuPane();
+	private Pane dashBoardPane = new DashBoardPane();
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 		launch(args);
 	}
 
 	@Override
 	public void start(Stage primaryStage) {
-		// branchPane=new BranchPane();
 		AnchorPane root = new AnchorPane();
 
 		Pane pane = new Pane();
@@ -48,7 +48,6 @@ public class FXDesign extends Application {
 		label.setUnderline(true);
 		SepiaTone sepiaTone = new SepiaTone();
 		label.setEffect(sepiaTone);
-		
 
 		innerPane = new Pane();
 		innerPane.setLayoutX(158);
@@ -58,12 +57,15 @@ public class FXDesign extends Application {
 		backgroundImageView.fitWidthProperty().bind(innerPane.widthProperty());
 		backgroundImageView.fitHeightProperty().bind(innerPane.heightProperty());
 		innerPane.getChildren().add(backgroundImageView);
+		innerPane.getChildren().clear();
+		innerPane.getChildren().add(dashBoardPane);
 
 		VBox vBox = new VBox();
 		vBox.setLayoutX(16);
 		vBox.setLayoutY(84);
 		vBox.setPrefSize(126, 308);
 		vBox.setSpacing(20);
+		primaryStage.setTitle("Dash Board Screen");
 
 		for (int i = 0; i < 11; i++) {
 			Label innerLabel = new Label();
@@ -77,41 +79,70 @@ public class FXDesign extends Application {
 			case 0:
 				innerLabel.setText("Dash Board");
 				innerLabel.setOnMouseClicked(event -> {
-
+					innerPane.getChildren().clear();
+					innerPane.getChildren().add(dashBoardPane);
+					primaryStage.setTitle("Dash Board Screen");
 				});
 				break;
 			case 1:
 				innerLabel.setText("Branches");
 				innerLabel.setOnMouseClicked(event -> {
-
 					innerPane.getChildren().clear();
-					innerPane.getChildren().add(backgroundImageView);
+					// innerPane.getChildren().add(backgroundImageView);
 					innerPane.getChildren().add(branchPane);
+					primaryStage.setTitle("Branches Screen");
 				});
 				break;
 			case 2:
 				innerLabel.setText("Menu");
+				innerLabel.setOnMouseClicked(event -> {
+					innerPane.getChildren().clear();
+					// innerPane.getChildren().add(backgroundImageView);
+					innerPane.getChildren().add(menuPane);
+					primaryStage.setTitle("Menus Screen");
+				});
 				break;
 			case 3:
 				innerLabel.setText("Menu Items");
+				innerLabel.setOnMouseClicked(e -> {
+					primaryStage.setTitle("Menu Items Screen");
+				});
 				break;
 			case 4:
 				innerLabel.setText("Tables");
+				innerLabel.setOnMouseClicked(e -> {
+					primaryStage.setTitle("Tables Screen");
+				});
 				break;
 			case 5:
 				innerLabel.setText("Orders");
+				innerLabel.setOnMouseClicked(e -> {
+					primaryStage.setTitle("Orders Screen");
+				});
 				break;
 			case 6:
 				innerLabel.setText("Customers");
+				innerLabel.setOnMouseClicked(e -> {
+					primaryStage.setTitle("Customers Screen");
+				});
 				break;
 			case 7:
 				innerLabel.setText("Employees");
+				innerLabel.setOnMouseClicked(e -> {
+					primaryStage.setTitle("Employees Screen");
+				});
 				break;
 			case 8:
 				innerLabel.setText("Delivery");
+				innerLabel.setOnMouseClicked(e -> {
+					primaryStage.setTitle("Delivery Screen");
+				});
 				break;
 			case 9:
 				innerLabel.setText("Payment");
+				innerLabel.setOnMouseClicked(e -> {
+					primaryStage.setTitle("Payment Screen");
+				});
 				break;
 			default:
 				break;
@@ -119,7 +150,6 @@ public class FXDesign extends Application {
 			vBox.getChildren().add(innerLabel);
 		}
 
-		
 		pane.getChildren().addAll(rectangle, label, innerPane, vBox);
 		root.getChildren().add(pane);
 

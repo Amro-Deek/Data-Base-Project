@@ -1,15 +1,23 @@
 package application;
 
 import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
+import java.util.Calendar;
+import java.util.Optional;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Scene;
+import javafx.scene.chart.PieChart;
+import javafx.scene.chart.PieChart.Data;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -20,6 +28,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
+import javafx.stage.Stage;
 
 public class BranchPane extends AnchorPane {
 
@@ -37,53 +46,63 @@ public class BranchPane extends AnchorPane {
 	private TextField txtMenuId;
 	private TextField txtResturantId;
 
+	// labels
+	private Label lblOrdersInDay;
+	private Label lblOrdersInMonth;
+	private Label lblOrdersInYear;
+	private Label lblNumOfEmployees;
+	private Label lblNumOfTables;
+	private Label lblAvgSalaries;
+
+	private Branch selectedBranch;
+
+	private PieChart branchMenuItemChart;
+
 	public BranchPane() {
 
 		AnchorPane root = new AnchorPane();
-		root.setPrefSize(722, 396);
+		// root.setPrefSize(722, 396);
+		root.setPrefSize(887, 551);
 
 		// Create the first VBox with Labels
 		VBox labelVBox = new VBox(18);
-		labelVBox.setLayoutX(2.0);
-		labelVBox.setLayoutY(41.0);
+		labelVBox.setLayoutX(6);
+		labelVBox.setLayoutY(21);
 		labelVBox.setPrefSize(93, 133);
 
 		// Create Labels
 		Label lblBranchId = new Label("branch_id");
-		lblBranchId.setFont(new Font(14));
-		lblBranchId.setStyle("-fx-font: bold 15px serif; -fx-text-fill: white; -fx-background-color: black;");
+		lblBranchId.setFont(new Font("Serif Bold", 14));
+		lblBranchId.setStyle("-fx-font: bold 15px serif;");
 
 		Label lblPhoneNumber = new Label("phoneNumber");
-		lblPhoneNumber.setFont(new Font(14));
-		lblPhoneNumber.setStyle("-fx-font: bold 15px serif; -fx-text-fill: white; -fx-background-color: black;");
+		lblPhoneNumber.setFont(new Font("Serif Bold", 14));
+		lblPhoneNumber.setStyle("-fx-font: bold 15px serif;");
 
 		Label lblLocation = new Label("location");
-		lblLocation.setFont(new Font(14));
-		lblLocation.setStyle("-fx-font: bold 15px serif; -fx-text-fill: white; -fx-background-color: black;");
+		lblLocation.setFont(new Font("Serif Bold", 14));
+		lblLocation.setStyle("-fx-font: bold 15px serif;");
 
 		Label lblOpeningHours = new Label("openinghours");
-		lblOpeningHours.setFont(new Font(14));
-		lblOpeningHours.setStyle("-fx-font: bold 15px serif; -fx-text-fill: white; -fx-background-color: black;");
+		lblOpeningHours.setFont(new Font("Serif Bold", 14));
+		lblOpeningHours.setStyle("-fx-font: bold 15px serif;");
 
 		Label lblMenuId = new Label("menu_id");
-		lblMenuId.setFont(new Font(14));
-		lblMenuId.setStyle("-fx-font: bold 15px serif; -fx-text-fill: white; -fx-background-color: black;");
+		lblMenuId.setFont(new Font("Serif Bold", 14));
+		lblMenuId.setStyle("-fx-font: bold 15px serif;");
 
 		Label lblResturantId = new Label("resturant_id");
-		lblResturantId.setFont(new Font(14));
-		lblResturantId.setStyle("-fx-font: bold 15px serif; -fx-text-fill: white; -fx-background-color: black;");
+		lblResturantId.setFont(new Font("Serif Bold", 14));
+		lblResturantId.setStyle("-fx-font: bold 15px serif;");
 
-		// Add labels to the VBox
 		labelVBox.getChildren().addAll(lblBranchId, lblPhoneNumber, lblLocation, lblOpeningHours, lblMenuId,
 				lblResturantId);
 
-		// Create the second VBox with TextFields
 		VBox textFieldVBox = new VBox(10);
-		textFieldVBox.setLayoutX(101.0);
-		textFieldVBox.setLayoutY(37.0);
-		textFieldVBox.setPrefSize(126, 158);
+		textFieldVBox.setLayoutX(107);
+		textFieldVBox.setLayoutY(19);
+		textFieldVBox.setPrefSize(162, 202);
 
-		// Create TextFields
 		txtBranchId = new TextField();
 		txtBranchId.setAccessibleText("branch_idtxt");
 		txtBranchId.setPrefSize(117, 26);
@@ -103,18 +122,16 @@ public class BranchPane extends AnchorPane {
 		txtResturantId = new TextField();
 		txtResturantId.setAccessibleText("resturant_idtxt");
 
-		// Add text fields to the VBox
 		textFieldVBox.getChildren().addAll(txtBranchId, txtPhoneNumber, txtLocation, txtOpeningHours, txtMenuId,
 				txtResturantId);
 
 		tableView = new TableView<>();
 		tableView.setId("tv_sailors");
 		tableView.setAccessibleText("rest_tableVeiw");
-		tableView.setLayoutX(243.0);
-		tableView.setLayoutY(32.0);
-		tableView.setPrefSize(453.0, 352.0);
+		tableView.setLayoutX(297);
+		tableView.setLayoutY(13);
+		tableView.setPrefSize(562, 253);
 
-		// Create the TableColumns
 		tcRestId = new TableColumn<>("Rest_id");
 		tcRestId.setPrefWidth(64.0);
 
@@ -122,38 +139,36 @@ public class BranchPane extends AnchorPane {
 		tcBranchId.setPrefWidth(78.67);
 
 		tcMenuId = new TableColumn<>("menu_id");
-		tcMenuId.setPrefWidth(112.0);
+		tcMenuId.setPrefWidth(75.0);
 
 		tcPhoneNumber = new TableColumn<>("phoneNumber");
-		tcPhoneNumber.setPrefWidth(75.0);
+		tcPhoneNumber.setPrefWidth(132.67);
 
 		tcOpeningHours = new TableColumn<>("openinghours");
-		tcOpeningHours.setPrefWidth(75.0);
+		tcOpeningHours.setPrefWidth(102.0);
 
 		tcLocation = new TableColumn<>("location");
-		tcLocation.setPrefWidth(75.0);
+		tcLocation.setPrefWidth(106.67);
 
-		// Add the columns to the TableView
 		tableView.getColumns().addAll(tcRestId, tcBranchId, tcMenuId, tcPhoneNumber, tcOpeningHours, tcLocation);
 
 		tableView.setOnMouseClicked(e -> {
 			handleRowSelection(e);
 		});
-		// Create buttons
 		Button btnInsert = new Button("insert");
-		btnInsert.setAccessibleText("insertbtn");
-		btnInsert.setLayoutX(125);
-		btnInsert.setLayoutY(255);
+		btnInsert.setLayoutX(14);
+		btnInsert.setLayoutY(237);
 		btnInsert.setPrefSize(78, 26);
+		btnInsert.setTextFill(javafx.scene.paint.Color.RED);
 		btnInsert.setOnAction(event -> {
 			insertRecord();
 		});
 
 		Button btnUpdate = new Button("update");
-		btnUpdate.setAccessibleText("updatebtn");
-		btnUpdate.setLayoutX(125);
-		btnUpdate.setLayoutY(294);
-		btnUpdate.setPrefSize(78, 26);
+		btnUpdate.setLayoutX(95);
+		btnUpdate.setLayoutY(237);
+		btnUpdate.setPrefSize(88, 26);
+		btnUpdate.setTextFill(javafx.scene.paint.Color.RED);
 		btnUpdate.setOnAction(event -> {
 			try {
 				updateRecord();
@@ -161,51 +176,145 @@ public class BranchPane extends AnchorPane {
 				displayAlert("ERROR ! check enteries");
 			}
 		});
-
 		Button btnDelete = new Button("delete");
-		btnDelete.setAccessibleText("deletebtn");
-		btnDelete.setLayoutX(125);
-		btnDelete.setLayoutY(332);
+		btnDelete.setLayoutX(188);
+		btnDelete.setLayoutY(237);
 		btnDelete.setPrefSize(78, 26);
+		btnDelete.setTextFill(javafx.scene.paint.Color.RED);
 		btnDelete.setOnAction(event -> {
-			deleteButton();
+			if (selectedBranch == null) {
+				displayAlert("Please choose a Branch !");
+			} else {
+				Alert alert = new Alert(AlertType.CONFIRMATION);
+				alert.setContentText("Are You Sure ? ");
+				Optional<ButtonType> result = alert.showAndWait();
+				if (result.get() == ButtonType.OK) {
+					deleteButton();
+				}
+			}
 		});
 
-		// Add all components to the root AnchorPane
-		root.getChildren().addAll(labelVBox, textFieldVBox, tableView, btnInsert, btnUpdate, btnDelete);
+		VBox vboxArabicLabels = new VBox(20);
+		vboxArabicLabels.setAlignment(javafx.geometry.Pos.TOP_RIGHT);
+		vboxArabicLabels.setLayoutX(689);
+		vboxArabicLabels.setLayoutY(280);
+		vboxArabicLabels.setPrefSize(179, 210);
 
-		// Create a scene and set the stage
+		lblOrdersInDay = new Label("إجمالي عدد الطلبات لهذا اليوم : ");
+		lblOrdersInDay.setStyle("-fx-font: bold 15px serif;");
+		lblOrdersInDay.setAccessibleText("ordersInDayLbl");
 
+		lblOrdersInMonth = new Label("إجمالي عدد الطلبات لهذا الشهر : ");
+		lblOrdersInMonth.setStyle("-fx-font: bold 15px serif;");
+		lblOrdersInMonth.setAccessibleText("ordersInMonthLbl");
+
+		lblOrdersInYear = new Label("إجمالي عدد الطلبات لهذه السنة : ");
+		lblOrdersInYear.setStyle("-fx-font: bold 15px serif;");
+		lblOrdersInYear.setAccessibleText("ordersInYearLbl");
+
+		lblNumOfEmployees = new Label("عدد الموظفين : ");
+		lblNumOfEmployees.setStyle("-fx-font: bold 15px serif;");
+		lblNumOfEmployees.setAccessibleText("numOfEmployeesLbl");
+
+		lblNumOfTables = new Label("عدد الطاولات : ");
+		lblNumOfTables.setStyle("-fx-font: bold 15px serif;");
+		lblNumOfTables.setAccessibleText("numOfTablesLbl");
+
+		lblAvgSalaries = new Label("متوسط رواتب الموظفين : ");
+		lblAvgSalaries.setStyle("-fx-font: bold 15px serif;");
+		lblAvgSalaries.setAccessibleText("avgSalariesLbl");
+
+		vboxArabicLabels.getChildren().addAll(lblOrdersInDay, lblOrdersInMonth, lblOrdersInYear, lblNumOfEmployees,
+				lblNumOfTables, lblAvgSalaries);
+
+		// Show Employees Button
+		Button btnShowEmployees = new Button("Show Employees");
+		btnShowEmployees.setLayoutX(89);
+		btnShowEmployees.setLayoutY(276);
+		btnShowEmployees.setTextFill(javafx.scene.paint.Color.RED);
+		btnShowEmployees.setAccessibleText("ShowEmployeesbtn");
+		btnShowEmployees.setOnAction(e -> {
+			if (selectedBranch != null) {
+				String q = "select * from phase3.employee e where e.branch_id = '" + selectedBranch.getBranch_id()
+						+ "'";
+				ObservableList<Employee> list = gitEmplyeesForBranch(q);
+				TableView<Employee> tv = new TableView<Employee>();
+				// Create columns
+				TableColumn<Employee, Integer> empIdCol = new TableColumn<>("Emp ID");
+				empIdCol.setCellValueFactory(new PropertyValueFactory<>("empId"));
+
+				TableColumn<Employee, Integer> branchIdCol = new TableColumn<>("Branch ID");
+				branchIdCol.setCellValueFactory(new PropertyValueFactory<>("branchId"));
+
+				TableColumn<Employee, String> contactInfoCol = new TableColumn<>("Contact Info");
+				contactInfoCol.setCellValueFactory(new PropertyValueFactory<>("contactInfo"));
+
+				TableColumn<Employee, String> positionCol = new TableColumn<>("Position");
+				positionCol.setCellValueFactory(new PropertyValueFactory<>("position"));
+
+				TableColumn<Employee, String> nameCol = new TableColumn<>("Name");
+				nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
+
+				TableColumn<Employee, Integer> salaryCol = new TableColumn<>("Salary");
+				salaryCol.setCellValueFactory(new PropertyValueFactory<>("salary"));
+
+				// Add columns to the table
+				tv.getColumns().add(empIdCol);
+				tv.getColumns().add(branchIdCol);
+				tv.getColumns().add(contactInfoCol);
+				tv.getColumns().add(positionCol);
+				tv.getColumns().add(nameCol);
+				tv.getColumns().add(salaryCol);
+				tv.setItems(list);
+				Scene sc = new Scene(tv);
+				Stage s = new Stage();
+				s.setScene(sc);
+				s.setTitle("Emplyees for Branch " + selectedBranch.getBranch_id());
+				s.show();
+
+			} else {
+				displayAlert("Please Select A Branch !");
+			}
+		});
+
+		branchMenuItemChart = new PieChart();
+		root.getChildren().addAll(labelVBox, textFieldVBox, tableView, btnInsert, btnUpdate, btnDelete,
+				vboxArabicLabels, btnShowEmployees, branchMenuItemChart);
 		showBranches();
 		getChildren().add(root);
 	}
 
 	private void insertRecord() {
-		int branchID = Integer.parseInt(txtBranchId.getText().trim());
-		int menuID = Integer.parseInt(txtMenuId.getText().trim());
-		int restID = Integer.parseInt(txtResturantId.getText().trim());
+		int branchID;
+		try {
+			branchID = Integer.parseInt(txtBranchId.getText().trim());
+			int menuID = Integer.parseInt(txtMenuId.getText().trim());
+			int restID = Integer.parseInt(txtResturantId.getText().trim());
 
-		System.out.println("branchID: " + branchID);
-		if (branchIDExists(branchID)) {
-			displayAlert("branch_id already exists.");
-			System.out.println("heelooooo1");
-			return;
-		} else {
-			if (!menuIDExists(menuID)) {
-				displayAlert("menu_id not exists.");
-				System.out.println("heelooooo2");
+			System.out.println("branchID: " + branchID);
+			if (branchIDExists(branchID)) {
+				displayAlert("branch_id already exists.");
+				System.out.println("heelooooo1");
 				return;
 			} else {
-				if (!restIDExists(restID)) {
-					displayAlert("resturant_id not exists.");
+				if (!menuIDExists(menuID)) {
+					displayAlert("menu_id not exists.");
+					System.out.println("heelooooo2");
+					return;
 				} else {
-					String query = "INSERT INTO phase3.branch VALUES ('" + branchID + "','"
-							+ txtPhoneNumber.getText().trim() + "','" + txtLocation.getText().trim() + "','"
-							+ txtOpeningHours.getText().trim() + "','" + menuID + "','" + restID + "')";
-					executeQuery(query);
-					showBranches();
+					if (!restIDExists(restID)) {
+						displayAlert("resturant_id not exists.");
+					} else {
+						String query = "INSERT INTO phase3.branch VALUES ('" + branchID + "','"
+								+ txtPhoneNumber.getText().trim() + "','" + txtLocation.getText().trim() + "','"
+								+ txtOpeningHours.getText().trim() + "','" + menuID + "','" + restID + "')";
+						executeQuery(query);
+						showBranches();
+					}
 				}
 			}
+		} catch (NumberFormatException wx) {
+
 		}
 
 	}
@@ -246,7 +355,6 @@ public class BranchPane extends AnchorPane {
 	}
 
 	private boolean restIDExists(int resturant_id) {
-
 		try {
 			Connection con = DBConnection.getConnection();
 			Statement stmt = con.createStatement();
@@ -264,25 +372,9 @@ public class BranchPane extends AnchorPane {
 	}
 
 	private void updateRecord() throws Exception {
-//		int index = tableView.getSelectionModel().getSelectedIndex();
-//		System.out.println("Index is :" + index);
-//		if (index <= -1) {
-//			System.out.println("No row selected.");
-//			return;
-//		}
-//
-//		Branch selectedBranch = tableView.getSelectionModel().getSelectedItem();
-//		int branchID =selectedBranch.getBranch_id();
-//		int menuID =selectedBranch.getMenu_id();
-//		int restID =selectedBranch.getResturant_id();
-//		String location =selectedBranch.getLocation();
-//		String phone =selectedBranch.getPhoneNumber();
-//		String houres =selectedBranch.getOpeninghours();
-//		
 		int branchID2 = Integer.parseInt(txtBranchId.getText().trim());
 		int menuID2 = Integer.parseInt(txtMenuId.getText().trim());
 		int restID2 = Integer.parseInt(txtResturantId.getText().trim());
-
 		try {
 			String query = "UPDATE phase3.branch SET menu_id = '" + menuID2 + "', phoneNumber = '"
 					+ txtPhoneNumber.getText().trim() + "', location = '" + txtLocation.getText().trim()
@@ -293,38 +385,53 @@ public class BranchPane extends AnchorPane {
 			throw new Exception();
 		}
 		showBranches();
-
 	}
 
 	private void deleteButton() {
-		int branchID2 = Integer.parseInt(txtBranchId.getText().trim());
-		String query = "DELETE FROM phase3.branch WHERE branch_id =" + branchID2 + "";
-		executeQuery(query);
-		showBranches();
+		int branchID2;
+		try {
+			branchID2 = Integer.parseInt(txtBranchId.getText().trim());
+			String query = "DELETE FROM phase3.branch WHERE branch_id =" + branchID2 + "";
+			executeQuery(query);
+			showBranches();
+		} catch (NumberFormatException ex) {
+
+		}
+
 	}
 
 	private void showBranches() {
 		String query = "SELECT * FROM phase3.branch";
 		ObservableList<Branch> branchesList = getBranches(query);
-		// Bind columns with properties
 		tcBranchId.setCellValueFactory(new PropertyValueFactory<Branch, Integer>("branch_id"));
 		tcPhoneNumber.setCellValueFactory(new PropertyValueFactory<Branch, String>("phoneNumber"));
 		tcLocation.setCellValueFactory(new PropertyValueFactory<Branch, String>("location"));
 		tcOpeningHours.setCellValueFactory(new PropertyValueFactory<Branch, String>("openinghours"));
 		tcMenuId.setCellValueFactory(new PropertyValueFactory<Branch, Integer>("menu_id"));
 		tcRestId.setCellValueFactory(new PropertyValueFactory<Branch, Integer>("resturant_id"));
-
 		tableView.setItems(branchesList);
+	}
 
+	public ObservableList<Employee> gitEmplyeesForBranch(String query) {
+		ObservableList<Employee> list = FXCollections.observableArrayList();
+		try (Connection conn = DBConnection.getConnection();
+				Statement st = conn.createStatement();
+				ResultSet rs = st.executeQuery(query)) {
+			while (rs.next()) {
+				Employee emp = new Employee(rs.getInt("emp_id"), rs.getInt("branch_id"), rs.getString("contactInfo"),
+						rs.getString("position"), rs.getString("name"), rs.getInt("salary"));
+				list.add(emp);
+			}
+		} catch (SQLException ex) {
+		}
+		return list;
 	}
 
 	public ObservableList<Branch> getBranches(String query) {
 		ObservableList<Branch> branchesList = FXCollections.observableArrayList();
-
 		try (Connection conn = DBConnection.getConnection();
 				Statement st = conn.createStatement();
 				ResultSet rs = st.executeQuery(query)) {
-
 			while (rs.next()) {
 				Branch branch = new Branch(rs.getInt("branch_id"), rs.getString("phoneNumber"),
 						rs.getString("location"), rs.getString("openinghours"), rs.getInt("menu_id"),
@@ -332,7 +439,6 @@ public class BranchPane extends AnchorPane {
 				branchesList.add(branch);
 			}
 		} catch (SQLException ex) {
-			ex.printStackTrace();
 		}
 		return branchesList;
 	}
@@ -345,16 +451,147 @@ public class BranchPane extends AnchorPane {
 			System.out.println("No row selected.");
 			return;
 		}
+		Branch selectedbranch = tableView.getSelectionModel().getSelectedItem();
+		int id = selectedbranch.getBranch_id();
+		if (selectedbranch != null) {
+			txtBranchId.setText(String.valueOf(selectedbranch.getBranch_id()));
+			txtLocation.setText(selectedbranch.getLocation());
+			txtMenuId.setText(String.valueOf(selectedbranch.getMenu_id()));
+			txtOpeningHours.setText(String.valueOf(selectedbranch.getOpeninghours()));
+			txtPhoneNumber.setText(String.valueOf(selectedbranch.getPhoneNumber()));
+			txtResturantId.setText(String.valueOf(selectedbranch.getResturant_id()));
+			LocalDate currentDate = LocalDate.now(); // Current date
 
-		Branch selectedBranch = tableView.getSelectionModel().getSelectedItem();
-		if (selectedBranch != null) {
-			txtBranchId.setText(String.valueOf(selectedBranch.getBranch_id()));
-			txtLocation.setText(selectedBranch.getLocation());
-			txtMenuId.setText(String.valueOf(selectedBranch.getMenu_id()));
-			txtOpeningHours.setText(String.valueOf(selectedBranch.getOpeninghours()));
-			txtPhoneNumber.setText(String.valueOf(selectedBranch.getPhoneNumber()));
-			txtResturantId.setText(String.valueOf(selectedBranch.getResturant_id()));
+			int day = currentDate.getDayOfMonth();
+			int month = currentDate.getMonthValue(); // Months are 1-based in LocalDate
+			int year = currentDate.getYear();
+			lblOrdersInDay.setText("إجمالي عدد الطلبات لهذا اليوم : " + totalOrdersInDay(day, month, year, id));
+			lblOrdersInMonth.setText("إجمالي عدد الطلبات لهذا الشهر : " + totalOrdersInMonth(month, year, id));
+			lblOrdersInYear.setText("إجمالي عدد الطلبات لهذه السنة : " + totalOrdersInYear(year, id));
+			lblNumOfEmployees.setText("عدد الموظفين : " + NumOfEmp(id));
+			lblNumOfTables.setText("عدد الطاولات : " + NumOfTables(id));
+			lblAvgSalaries.setText("متوسط رواتب الموظفين : " + avgSalaries(id));
+
+			// branchMenuItemChart = new PieChart();
+			branchMenuItemChart.setAccessibleText("");
+			branchMenuItemChart.setLayoutX(300);
+			branchMenuItemChart.setLayoutY(280);
+			branchMenuItemChart.setPrefHeight(220);
+			branchMenuItemChart.setPrefWidth(320);
+			branchMenuItemChart.getData().clear();
+			branchMenuItemChart.setTitle("المبيعات لكل منتج في الفرع " + selectedbranch.getBranch_id());
+			String query = "select mi.name ,count(*) as count from menu_item mi , orders o , order_menu_item omi where o.branch_id = '"
+					+ selectedbranch.getBranch_id()
+					+ "' and mi.item_id = omi.item_id and o.order_id=omi.order_id group by mi.item_id";
+			try (Connection conn = DBConnection.getConnection();
+					Statement st = conn.createStatement();
+					ResultSet rs = st.executeQuery(query)) {
+				while (rs.next()) {
+					Data d1 = new PieChart.Data(rs.getString("name"), rs.getInt("count"));
+					branchMenuItemChart.getData().add(d1);
+				}
+
+			} catch (SQLException ex) {
+				ex.printStackTrace();
+			}
 		}
+		selectedBranch = selectedbranch;
+
+	}
+
+	private String avgSalaries(int id) {
+		String query = "SELECT AVG(e.salary) as avg FROM phase3.employee as e WHERE e.branch_id = '" + id + "'";
+		double num = 0;
+		try (Connection conn = DBConnection.getConnection();
+				Statement st = conn.createStatement();
+				ResultSet rs = st.executeQuery(query)) {
+			while (rs.next()) {
+				num = rs.getInt("avg");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return String.format("%.2f", num);
+	}
+
+	private int NumOfTables(int id) {
+		String query = "select count(*) as count from phase3.diningtable as dt where dt.branch_id ='" + id + "' ";
+		int num = 0;
+		try (Connection conn = DBConnection.getConnection();
+				Statement st = conn.createStatement();
+				ResultSet rs = st.executeQuery(query)) {
+			while (rs.next()) {
+				num = rs.getInt("count");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return num;
+	}
+
+	private int NumOfEmp(int id) {
+		String query = "select count(*) as count from phase3.employee as e where e.branch_id ='" + id + "' ";
+		int num = 0;
+		try (Connection conn = DBConnection.getConnection();
+				Statement st = conn.createStatement();
+				ResultSet rs = st.executeQuery(query)) {
+			while (rs.next()) {
+				num = rs.getInt("count");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return num;
+	}
+
+	private int totalOrdersInYear(int year, int id) {
+		String query = "select count(*) as count from phase3.orders where orders.branch_id ='" + id
+				+ "' and year(order_date) = '" + year + "' ";
+		int totalOrders = 0;
+		try (Connection conn = DBConnection.getConnection();
+				Statement st = conn.createStatement();
+				ResultSet rs = st.executeQuery(query)) {
+			while (rs.next()) {
+				totalOrders = rs.getInt("count");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return totalOrders;
+	}
+
+	private int totalOrdersInMonth(int month, int year, int id) {
+		String query = "select count(*) as count from phase3.orders where orders.branch_id ='" + id
+				+ "' and year(order_date) = '" + year + "' and month(order_date) ='" + month + "' ";
+		int totalOrders = 0;
+		try (Connection conn = DBConnection.getConnection();
+				Statement st = conn.createStatement();
+				ResultSet rs = st.executeQuery(query)) {
+			while (rs.next()) {
+				totalOrders = rs.getInt("count");
+				System.out.println(rs.getInt("count"));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return totalOrders;
+	}
+
+	private int totalOrdersInDay(int day, int month, int year, int id) {
+		String query = "select count(*) as count from phase3.orders where orders.branch_id ='" + id
+				+ "' and year(order_date) = '" + year + "' and month(order_date) ='" + month
+				+ "' and day(order_date) ='" + day + "'";
+		int totalOrders = 0;
+		try (Connection conn = DBConnection.getConnection();
+				Statement st = conn.createStatement();
+				ResultSet rs = st.executeQuery(query)) {
+			while (rs.next()) {
+				totalOrders = rs.getInt("count");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return totalOrders;
 	}
 
 	private void displayAlert(String message) {
